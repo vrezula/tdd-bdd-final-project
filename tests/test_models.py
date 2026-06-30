@@ -162,17 +162,13 @@ class TestProductModel(unittest.TestCase):
 
     def test_list_all_products(self):
         """It should list all products"""
-        # Assert if the products list is empty
         products = Product.all()
         self.assertEqual(len(products), 0)
-        # Use for loop to create five Product objects using a ProductFactory()
         for _ in range(5):
             product = ProductFactory()
             product.create()
             self.assertIsNotNone(product.id)
-        # Fetch all products from the database again using product.all()
         products = Product.all()
-        # Assert if the length of the products list is equal to 5
         self.assertEqual(len(products), 5)
 
     def test_find_by_name(self):
@@ -219,3 +215,14 @@ class TestProductModel(unittest.TestCase):
         price = products[0].price
         count = Product.find_by_price(price)
         assert(count != 0)
+
+    def test_deserialize_error(self):
+        thisdict = dict(id=0, name = "Jill", description = 36, price = 154.34,
+                        available = False, category = 0)
+        product = ProductFactory()
+        product.create()
+        product.id = 23
+        try:
+            product2 = product.deserialize(thisdict)
+        except Exception as err:
+            print("Caught Data Validation Error!")
