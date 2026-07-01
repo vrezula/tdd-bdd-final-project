@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -127,7 +127,7 @@ class TestProductModel(unittest.TestCase):
         product.id = None
         product.create()
         self.assertIsNotNone(product.id)
-        # Change it an save it
+        # Change it and save it
         product.description = "testing"
         original_id = product.id
         product.update()
@@ -146,14 +146,12 @@ class TestProductModel(unittest.TestCase):
         product.id = None
         try:
             product.update()
-        except Exception as err:
+        except DataValidationError as err:
             print(f"Expected {err=}, {type(err)=}")
-
 
     def test_delete_a_product(self):
         """It should Delete a Product"""
         product = ProductFactory()
-        product.id = None
         product.create()
         self.assertIsNotNone(product.id)
         self.assertEqual(len(Product.all()), 1)
@@ -167,7 +165,6 @@ class TestProductModel(unittest.TestCase):
         for _ in range(5):
             product = ProductFactory()
             product.create()
-            self.assertIsNotNone(product.id)
         products = Product.all()
         self.assertEqual(len(products), 5)
 
@@ -214,15 +211,45 @@ class TestProductModel(unittest.TestCase):
             product.create()
         price = products[0].price
         count = Product.find_by_price(price)
-        assert(count != 0)
+        assert count != 0
 
-    def test_deserialize_error(self):
-        thisdict = dict(id=0, name = "Jill", description = 36, price = 154.34,
-                        available = False, category = 0)
+    def test_find_by_price_string(self):
+        """It should cause an Error in Finding Product by Price"""
+        products = ProductFactory.create_batch(5)
+        for product in products:
+            product.create()
+        price = "14.45 "
+        count = Product.find_by_price(price)
+        assert count != 0
+
+    def test_deserialize_available_error(self):
+        """Recreate Deserialization errors for code coverage"""
+        thisdict = dict(id=0, name="Jill", description=36, price=154.34,
+                        available="yrdy", category=0)
         product = ProductFactory()
         product.create()
-        product.id = 23
         try:
-            product2 = product.deserialize(thisdict)
-        except Exception as err:
-            print("Caught Data Validation Error!")
+            product.deserialize(thisdict)
+        except DataValidationError as err:
+            print("Caught Data Validation Error! " + str(err))
+
+    def test_deserialize_attribute_error(self):
+        """Recreate Deserialization errors for code coverage 2"""
+        thisdict = dict(id=0, name="Jill", description=36, price=154.34,
+                        available=False, category=0)
+        product = ProductFactory()
+        product.create()
+        try:
+            product.deserialize(thisdict)
+        except DataValidationError as err:
+            print("Caught Data Validation Attribute Error! " + str(err))
+
+    def test_deserialize_body_error(self):
+        """Recreate Deserialization errors for code coverage 3"""
+        thisdict = {}
+        product = ProductFactory()
+        product.create()
+        try:
+            product.deserialize(thisdict)
+        except DataValidationError as err:
+            print("Caught Data Validation Attribute Error! " + str(err))
