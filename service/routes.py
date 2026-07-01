@@ -106,16 +106,16 @@ def create_products():
 # R E A D   A   P R O D U C T
 ######################################################################
 
-@app.route("/products/int:product_id>", methods=["GET"])
+@app.route("/products/<int:product_id>", methods=["GET"])
 def get_products(product_id):
     """
     Gets a Product
     This endpoint will get a Product based on the id which is submitted
     """
-    app.logger.info("GET a product with id [%s]", product_id)
+    app.logger.error("GET a product with id [%s]", product_id)
     product = Product.find(product_id)
-    # if not product:
-    #     abort(status.HTTP_404_NOT_FOUND, f"Product id '{product_id}' is 404.")
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product id '{product_id}' is 404.")
     return product.serialize(), status.HTTP_200_OK
 
 
