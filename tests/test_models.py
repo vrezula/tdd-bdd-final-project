@@ -224,8 +224,8 @@ class TestProductModel(unittest.TestCase):
 
     def test_deserialize_available_error(self):
         """Recreate Deserialization errors for code coverage"""
-        thisdict = dict(id=0, name="Jill", description=36, price=154.34,
-                        available="yrdy", category=0)
+        thisdict = {"id": 0, "name": 'Jill', "description": 36, "price": 123.23,
+                    "available": 85, "category": 0}
         product = ProductFactory()
         product.create()
         try:
@@ -235,8 +235,8 @@ class TestProductModel(unittest.TestCase):
 
     def test_deserialize_attribute_error(self):
         """Recreate Deserialization errors for code coverage 2"""
-        thisdict = dict(id=0, name="Jill", description=36, price=154.34,
-                        available=False, category=0)
+        thisdict = {"id": 0, "name": 'Jill', "description": 36,
+                    "available": False, "category": 0, "truck": 32}
         product = ProductFactory()
         product.create()
         try:
