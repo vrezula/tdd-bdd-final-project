@@ -32,6 +32,7 @@ from service import app
 from service.common import status
 from service.models import db, init_db, Product
 from tests.factories import ProductFactory
+from urllib.parse import quote_plus
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
@@ -212,6 +213,59 @@ class TestProductRoutes(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         current_products = self.get_product_count()
         self.assertEqual(initial_products - current_products, 1)
+
+    def test_list_all(self):
+        """List all Products"""
+        products = self._create_products(5)
+        # verify we have 5 products
+        initial_products = self.get_product_count()
+        self.assertEqual(initial_products, 5)
+        # get a list of all products
+        response = self.client.get(BASE_URL)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+    def test_list_by_name(self):
+        """List a product by name"""
+        products = self._create_products(5)
+        # verify we have 5 products
+        initial_products = self.get_product_count()
+        self.assertEqual(initial_products, 5)
+        # extract the name of the first product in the 
+        test_name = products[0].name
+        # count the number of products
+        name_count = 0
+        for i in products:
+            if test_name == i.name:
+                name_count = name_count + 1
+        # send an HTTP GET request to the URL specified by the BASE_URL
+        response = self.client.get(BASE_URL, query_string=f"name={quote_plus(test_name)}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # retrieve the JSON data from the response
+        data = response.get_json()
+        # assert that the length of the data list ( name_count
+        self.assertEqual(len(data), name_count)
+        # use a for loop to iterate through the products in the data list 
+        # and checks if each product's name matches the test
+        for prod in data:
+            self.assertEqual(prod["name"], test_name)
+
+    def test_list_by_category(self):
+        """List products by category"""
+        products = self._create_products(5)
+        # verify we have 5 products
+        initial_products = self.get_product_count()
+        self.assertEqual(initial_products, 5)
+        category = products[0].category
+        found = [product for product in products if product.category == category]
+        found_count = len(found)
+        logging.debug(f"found {found_count} products")
+        response = self.client.get(BASE_URL, query_string=f"category={category.name}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), found_count)
+        for prod in data:
+            self.assertEqual(prod["category"], category)
 
     ######################################################################
     # Utility functions
