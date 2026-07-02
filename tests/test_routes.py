@@ -96,13 +96,13 @@ class TestProductRoutes(TestCase):
     #  T E S T   C A S E S
     ############################################################
     def test_index(self):
-        """It should return the index page"""
+        """Return the index page"""
         response = self.client.get("/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(b"Product Catalog Administration", response.data)
 
     def test_health(self):
-        """It should be healthy"""
+        """Check health"""
         response = self.client.get("/health")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -112,7 +112,7 @@ class TestProductRoutes(TestCase):
     # TEST CREATE
     # ----------------------------------------------------------
     def test_create_product(self):
-        """It should Create a new Product"""
+        """Create a new Product"""
         test_product = ProductFactory()
         logging.debug("Test Product: %s", test_product.serialize())
         response = self.client.post(BASE_URL, json=test_product.serialize())
@@ -135,17 +135,17 @@ class TestProductRoutes(TestCase):
         #
 
         # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
-        # self.assertEqual(Decimal(new_product["price"]), test_product.price)
-        # self.assertEqual(new_product["available"], test_product.available)
-        # self.assertEqual(new_product["category"], test_product.category.name)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_product = response.get_json()
+        self.assertEqual(new_product["name"], test_product.name)
+        self.assertEqual(new_product["description"], test_product.description)
+        self.assertEqual(Decimal(new_product["price"]), test_product.price)
+        self.assertEqual(new_product["available"], test_product.available)
+        self.assertEqual(new_product["category"], test_product.category.name)
 
     def test_create_product_with_no_name(self):
-        """It should not Create a Product without a name"""
+        """Do not Create a Product without a name"""
         product = self._create_products()[0]
         new_product = product.serialize()
         del new_product["name"]
@@ -154,17 +154,17 @@ class TestProductRoutes(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_product_no_content_type(self):
-        """It should not Create a Product with no Content-Type"""
+        """Do not Create a Product with no Content-Type"""
         response = self.client.post(BASE_URL, data="bad data")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_create_product_wrong_content_type(self):
-        """It should not Create a Product with wrong Content-Type"""
+        """Do not Create a Product with wrong Content-Type"""
         response = self.client.post(BASE_URL, data={}, content_type="plain/text")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_get_product(self):
-        """It should GET a single Product"""
+        """GET a single Product"""
         # get the id of a product
         test_product = self._create_products()[0]
         logging.info("TR Product id is: %i", test_product.id)
@@ -194,14 +194,38 @@ class TestProductRoutes(TestCase):
         updated_product = response.get_json()
         self.assertEqual(updated_product["description"], desc)
 
+    def test_delete_product(self):
+        """Delete a Product"""
+
+        # create a list products containing 5 products using the _create_products() method. 
+        products = self._create_products(5)
+        # call the self.get_product_count() method to retrieve the initial count of products before any deletion
+        initial_products = self.get_product_count()
+        # assign the first product from the products list to the variable test_product
+        test_product = products[0]
+        # send a self.client.delete() request to the BASE_URL with test_product.id
+        response = self.client.delete(f"{BASE_URL}/{test_product.id}")
+        # assert that the resp.status_code is status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # check if the response data is empty 
+        self.assertEqual(len(response.data), 0)
+        # send a self.client.get request to the same endpoint that was deleted to retrieve the deteled product
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        # assert that the resp.status_code is status.HTTP_404_NOT_FOUND to confirm deletion of the product
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # retrieve the count of products after the deletion operation
+        current_products = self.get_product_count()
+        # check if the new count of products is one less than the initial count
+        self.assertEqual(initial_products - current_products, 1)
+        
     ######################################################################
     # Utility functions
     ######################################################################
 
     def get_product_count(self):
-        """save the current number of products"""
+        """Return the current number of products"""
         response = self.client.get(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        # logging.debug("data = %s", data)
+        logging.debug("data = %s", data)
         return len(data)

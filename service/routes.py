@@ -85,12 +85,9 @@ def create_products():
     app.logger.info("Product with new id [%s] saved!", product.id)
 
     message = product.serialize()
-
-    #
-    # Uncomment this line of code once you implement READ A PRODUCT
-    #
-    # location_url = url_for("get_products", product_id=product.id, _external=True)
-    location_url = "/"  # delete once READ is implemented
+  
+    location_url = url_for("get_products", product_id=product.id, _external=True)
+    # location_url = "/"  # delete once READ is implemented
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
@@ -98,9 +95,16 @@ def create_products():
 # L I S T   A L L   P R O D U C T S
 ######################################################################
 
-#
-# PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
-#
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns a list of Products"""
+    app.logger.info("Request to list Products...")
+
+    products = Product.all()
+
+    results = [product.serialize() for product in products]
+    app.logger.info("[%s] Products returned", len(results))
+    return results, status.HTTP_200_OK
 
 ######################################################################
 # R E A D   A   P R O D U C T
@@ -144,6 +148,15 @@ def update_products(product_id):
 ######################################################################
 
 
-#
-# PLACE YOUR CODE TO DELETE A PRODUCT HERE
-#
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_products(product_id):
+    """Delete a product using its product_id"""
+    # use the Product.find() method to retrieve the product by the product_id
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product id '{product_id}' is 404.")
+    # if found, call the delete() method on the product
+    if product:
+        product.delete()
+    # return an empty body ("") with a return code of status.HTTP_204_NO_CONTENT
+    return "", status.HTTP_204_NO_CONTENT
