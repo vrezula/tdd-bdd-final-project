@@ -196,28 +196,23 @@ class TestProductRoutes(TestCase):
 
     def test_delete_product(self):
         """Delete a Product"""
-
-        # create a list products containing 5 products using the _create_products() method. 
+        # create a list products containing 5 products using the _create_products() method.
         products = self._create_products(5)
         # call the self.get_product_count() method to retrieve the initial count of products before any deletion
         initial_products = self.get_product_count()
         # assign the first product from the products list to the variable test_product
         test_product = products[0]
-        # send a self.client.delete() request to the BASE_URL with test_product.id
         response = self.client.delete(f"{BASE_URL}/{test_product.id}")
-        # assert that the resp.status_code is status.HTTP_204_NO_CONTENT
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # check if the response data is empty 
+        # check if the response data is empty
         self.assertEqual(len(response.data), 0)
         # send a self.client.get request to the same endpoint that was deleted to retrieve the deteled product
         response = self.client.get(f"{BASE_URL}/{test_product.id}")
         # assert that the resp.status_code is status.HTTP_404_NOT_FOUND to confirm deletion of the product
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # retrieve the count of products after the deletion operation
         current_products = self.get_product_count()
-        # check if the new count of products is one less than the initial count
         self.assertEqual(initial_products - current_products, 1)
-        
+
     ######################################################################
     # Utility functions
     ######################################################################
