@@ -28,11 +28,11 @@ import os
 import logging
 from decimal import Decimal
 from unittest import TestCase
+from urllib.parse import quote_plus
 from service import app
 from service.common import status
 from service.models import db, init_db, Product
 from tests.factories import ProductFactory
-from urllib.parse import quote_plus
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
@@ -216,7 +216,7 @@ class TestProductRoutes(TestCase):
 
     def test_list_all(self):
         """List all Products"""
-        products = self._create_products(5)
+        self._create_products(5)
         # verify we have 5 products
         initial_products = self.get_product_count()
         self.assertEqual(initial_products, 5)
@@ -231,7 +231,7 @@ class TestProductRoutes(TestCase):
         # verify we have 5 products
         initial_products = self.get_product_count()
         self.assertEqual(initial_products, 5)
-        # extract the name of the first product in the 
+        # extract the name of the first product
         test_name = products[0].name
         # count the number of products
         name_count = 0
@@ -245,7 +245,7 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         # assert that the length of the data list ( name_count
         self.assertEqual(len(data), name_count)
-        # use a for loop to iterate through the products in the data list 
+        # use a for loop to iterate through the products in the data list
         # and checks if each product's name matches the test
         for prod in data:
             self.assertEqual(prod["name"], test_name)
@@ -259,7 +259,7 @@ class TestProductRoutes(TestCase):
         category = products[0].category
         found = [product for product in products if product.category == category]
         found_count = len(found)
-        logging.debug(f"found {found_count} products")
+        logging.debug("found %s products", found_count)
         response = self.client.get(BASE_URL, query_string=f"category={category.name}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -276,7 +276,7 @@ class TestProductRoutes(TestCase):
         available = products[0].available
         found = [product for product in products if product.available == available]
         found_count = len(found)
-        logging.debug(f"found {found_count} products")
+        logging.debug("found %s products", found_count)
         response = self.client.get(BASE_URL, query_string=f"available={available}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
