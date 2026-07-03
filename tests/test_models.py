@@ -150,7 +150,7 @@ class TestProductModel(unittest.TestCase):
             print(f"Expected {err=}, {type(err)=}")
 
     def test_delete_a_product(self):
-        """It should Delete a Product"""
+        """Delete a Product"""
         product = ProductFactory()
         product.create()
         self.assertIsNotNone(product.id)
@@ -159,7 +159,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(len(Product.all()), 0)
 
     def test_list_all_products(self):
-        """It should list all products"""
+        """List all products"""
         products = Product.all()
         self.assertEqual(len(products), 0)
         for _ in range(5):
@@ -181,7 +181,7 @@ class TestProductModel(unittest.TestCase):
             self.assertEqual(product.name, name)
 
     def test_find_by_availability(self):
-        """It should Find Products by Availability"""
+        """Find Products by Availability"""
         products = ProductFactory.create_batch(10)
         for product in products:
             product.create()
@@ -193,7 +193,7 @@ class TestProductModel(unittest.TestCase):
             self.assertEqual(product.available, available)
 
     def test_find_by_category(self):
-        """It should Find Products by Category"""
+        """Find Products by Category"""
         products = ProductFactory.create_batch(10)
         for product in products:
             product.create()
